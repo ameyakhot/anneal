@@ -1,6 +1,6 @@
 [project]
 name = "anneal-context"
-version = "0.1.1"
+version = "0.1.2"
 description = "Optimal context selection for AI coding assistants using QUBO/Ising formulation"
 readme = "README.md"
 authors = [
