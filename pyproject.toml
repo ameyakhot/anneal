@@ -1,0 +1,33 @@
+[project]
+name = "anneal"
+version = "0.1.0"
+description = "Optimal context selection for AI coding assistants using QUBO/Ising formulation"
+readme = "README.md"
+authors = [
+    { name = "Ameya Khot", email = "ameyakhot18@gmail.com" }
+]
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "mcp>=1.0.0",
+    "dimod>=0.12.0",
+    "dwave-neal>=0.6.0",
+    "numpy>=1.26.0",
+    "scipy>=1.12.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.4.0",
+]
+
+[project.scripts]
+anneal-server = "anneal.server:main"
+
+[build-system]
+requires = ["uv_build>=0.9.5,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100

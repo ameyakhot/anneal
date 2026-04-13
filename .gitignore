@@ -1,0 +1,14 @@
+# Local config (project-specific, not for repo)
+.anneal/
+CLAUDE.md
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+dist/
+*.egg-info/
+.ruff_cache/
+
+# Test artifacts
+.pytest_cache/
