@@ -41,7 +41,11 @@ def _keyword_score(node: Node, keywords: list[str]) -> float:
         return 0.0
     text = f"{node.path} {node.name}".lower()
     hits = sum(1 for kw in keywords if kw in text)
-    return min(1.0, hits / len(keywords))
+    if hits == 0:
+        return 0.0
+    # Score based on hits vs a cap of 3, not total keywords.
+    # This prevents noise words from diluting strong matches.
+    return min(1.0, hits / min(3, len(keywords)))
 
 
 def _read_content(node: Node, project_root: Path) -> str:
@@ -60,7 +64,7 @@ def _read_content(node: Node, project_root: Path) -> str:
 
 class CandidateGenerator:
     def __init__(self, graph_source: GraphSource, project_root: Path,
-                 keyword_weight: float = 0.7, centrality_weight: float = 0.3):
+                 keyword_weight: float = 0.85, centrality_weight: float = 0.15):
         self._source = graph_source
         self._project_root = project_root
         self._kw_w = keyword_weight

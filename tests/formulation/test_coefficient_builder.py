@@ -52,14 +52,14 @@ def test_quadratic_shape():
     cb = ContextCoefficientBuilder()
     candidates = _make_candidates()
     edges = _make_edges()
-    quadratic = cb.compute_quadratic_weights(candidates, edges)
+    quadratic = cb.compute_quadratic_weights(candidates, edges, budget=500)
     assert quadratic.shape == (3, 3)
 
 
 def test_quadratic_same_file_redundancy():
     cb = ContextCoefficientBuilder(gamma=1.0, beta=0.0, penalty=0.0)
     candidates = _make_candidates()
-    quadratic = cb.compute_quadratic_weights(candidates, [])
+    quadratic = cb.compute_quadratic_weights(candidates, [], budget=500)
     assert quadratic[0, 1] > 0.0
 
 
@@ -67,22 +67,25 @@ def test_quadratic_dependency_reward():
     cb = ContextCoefficientBuilder(gamma=0.0, beta=1.0, penalty=0.0)
     candidates = _make_candidates()
     edges = _make_edges()
-    quadratic = cb.compute_quadratic_weights(candidates, edges)
+    quadratic = cb.compute_quadratic_weights(candidates, edges, budget=500)
     assert quadratic[0, 1] < 0.0
 
 
 def test_budget_penalty_linear_term():
+    """Normalized: penalty * (t/B) * (t/B - 2)"""
     cb = ContextCoefficientBuilder(mu=0.0, alpha=0.0, penalty=1.0)
     candidates = [
         Candidate(node=Node(id="x", path="a.py", name="f", node_type="function"),
                   relevance_score=0.0, content="", tokens=100)
     ]
     linear = cb.compute_linear_weights(candidates, budget=500)
-    penalty_addition = 1.0 * 100 * (100 - 2 * 500)
-    assert abs(linear[0] - penalty_addition) < 1e-6
+    t_norm = 100 / 500  # 0.2
+    expected = 1.0 * t_norm * (t_norm - 2)  # 0.2 * -1.8 = -0.36
+    assert abs(linear[0] - expected) < 1e-6
 
 
 def test_budget_penalty_quadratic_term():
+    """Normalized: 2 * penalty * (t_i/B) * (t_j/B)"""
     cb = ContextCoefficientBuilder(mu=0.0, alpha=0.0, gamma=0.0, beta=0.0, penalty=1.0)
     candidates = [
         Candidate(node=Node(id="x", path="a.py", name="f", node_type="function"),
@@ -90,5 +93,6 @@ def test_budget_penalty_quadratic_term():
         Candidate(node=Node(id="y", path="b.py", name="g", node_type="function"),
                   relevance_score=0.0, content="", tokens=50),
     ]
-    quadratic = cb.compute_quadratic_weights(candidates, [])
-    assert abs(quadratic[0, 1] - 10000.0) < 1e-6
+    quadratic = cb.compute_quadratic_weights(candidates, [], budget=500)
+    expected = 2.0 * 1.0 * (100 / 500) * (50 / 500)  # 2 * 0.2 * 0.1 = 0.04
+    assert abs(quadratic[0, 1] - expected) < 1e-6

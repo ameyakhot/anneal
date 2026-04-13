@@ -1,10 +1,12 @@
 """Compute QUBO coefficients for context selection.
 
 Linear: w_i = -mu * relevance_i + alpha * (tokens_i / budget)
-             + penalty * tokens_i * (tokens_i - 2 * budget)
+             + penalty * (tokens_i/budget) * (tokens_i/budget - 2)
 
 Quadratic: w_ij = gamma * redundancy_ij - beta * dependency_ij
-                 + 2 * penalty * tokens_i * tokens_j
+                 + 2 * penalty * (tokens_i/budget) * (tokens_j/budget)
+
+Budget penalty is normalized by budget so all terms are O(1), not O(budget^2).
 """
 
 from __future__ import annotations
@@ -32,12 +34,17 @@ class ContextCoefficientBuilder:
         safe_budget = max(budget, 1)
         for i, c in enumerate(candidates):
             weights[i] = -self.mu * c.relevance_score + self.alpha * (c.tokens / safe_budget)
-            weights[i] += self.penalty * c.tokens * (c.tokens - 2 * safe_budget)
+            # Normalized budget penalty: (t_i/B) * (t_i/B - 2)
+            ti_norm = c.tokens / safe_budget
+            weights[i] += self.penalty * ti_norm * (ti_norm - 2)
         return weights
 
-    def compute_quadratic_weights(self, candidates: list[Candidate], edges: list[Edge]) -> np.ndarray:
+    def compute_quadratic_weights(
+        self, candidates: list[Candidate], edges: list[Edge], budget: int = 5000
+    ) -> np.ndarray:
         n = len(candidates)
         weights = np.zeros((n, n))
+        safe_budget = max(budget, 1)
         id_to_idx = {c.node.id: i for i, c in enumerate(candidates)}
 
         for i in range(n):
@@ -64,7 +71,9 @@ class ContextCoefficientBuilder:
 
         for i in range(n):
             for j in range(i + 1, n):
-                bp = 2.0 * self.penalty * candidates[i].tokens * candidates[j].tokens
+                ti_norm = candidates[i].tokens / safe_budget
+                tj_norm = candidates[j].tokens / safe_budget
+                bp = 2.0 * self.penalty * ti_norm * tj_norm
                 weights[i, j] += bp
                 weights[j, i] += bp
 

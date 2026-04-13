@@ -11,9 +11,9 @@ from anneal.formulation.candidate_generator import Candidate
 from anneal.formulation.coefficient_builder import ContextCoefficientBuilder
 
 _STRATEGY_PARAMS: dict[str, dict] = {
-    "minimal": dict(mu=1.0, alpha=1.0, beta=0.5, gamma=0.5, penalty=10.0),
-    "balanced": dict(mu=1.0, alpha=0.5, beta=1.0, gamma=0.8, penalty=5.0),
-    "thorough": dict(mu=1.5, alpha=0.2, beta=1.5, gamma=0.3, penalty=2.0),
+    "minimal": dict(mu=3.0, alpha=1.5, beta=0.5, gamma=0.5, penalty=8.0),
+    "balanced": dict(mu=3.0, alpha=0.5, beta=1.0, gamma=0.8, penalty=3.0),
+    "thorough": dict(mu=4.0, alpha=0.2, beta=1.5, gamma=0.3, penalty=1.0),
 }
 
 _STRATEGY_BUDGETS: dict[str, int] = {
@@ -43,6 +43,6 @@ class ContextQUBOBuilder:
               budget: int) -> dimod.BinaryQuadraticModel:
         coeff = ContextCoefficientBuilder(**self._coeff_params)
         linear = coeff.compute_linear_weights(candidates, budget)
-        quadratic = coeff.compute_quadratic_weights(candidates, edges)
+        quadratic = coeff.compute_quadratic_weights(candidates, edges, budget)
         builder = QUBOBuilder(penalty_strength=self._coeff_params["penalty"])
         return builder.build(linear, quadratic)
