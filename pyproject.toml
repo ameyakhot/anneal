@@ -10,6 +10,7 @@ license = { text = "MIT" }
 requires-python = ">=3.11"
 dependencies = [
     "mcp>=1.0.0",
+    "spinchain>=0.1.0",
     "dimod>=0.12.0",
     "dwave-neal>=0.6.0",
     "numpy>=1.26.0",
@@ -20,7 +21,6 @@ dependencies = [
 dev = [
     "pytest>=8.0.0",
     "ruff>=0.4.0",
-    "spinchain",
 ]
 
 [project.scripts]
