@@ -10,7 +10,7 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 
-from anneal.graph.base import Edge, GraphSource, Node
+from anneal.graph.base import GraphSource, Node
 
 logger = logging.getLogger("anneal.formulation.candidate_generator")
 

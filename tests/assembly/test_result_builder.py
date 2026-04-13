@@ -1,6 +1,4 @@
-import pytest
 import dimod
-import numpy as np
 from anneal.graph.base import Node, Edge
 from anneal.formulation.candidate_generator import Candidate
 from anneal.assembly.result_builder import ResultBuilder, stability_ranking

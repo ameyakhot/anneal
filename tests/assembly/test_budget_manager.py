@@ -1,4 +1,3 @@
-import pytest
 from anneal.graph.base import Node
 from anneal.formulation.candidate_generator import Candidate
 from anneal.assembly.budget_manager import BudgetManager

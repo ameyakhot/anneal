@@ -1,7 +1,6 @@
 import json
 import sqlite3
 from pathlib import Path
-import pytest
 
 from anneal.graph.code_review_graph import CodeReviewGraphSource
 from anneal.formulation.candidate_generator import CandidateGenerator

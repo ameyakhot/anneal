@@ -1,5 +1,3 @@
-import numpy as np
-import pytest
 from anneal.graph.base import Edge, Node
 from anneal.formulation.candidate_generator import Candidate
 from anneal.formulation.coefficient_builder import ContextCoefficientBuilder

@@ -1,5 +1,4 @@
 import json
-import pytest
 from pathlib import Path
 from anneal.graph.graphify import GraphifySource
 

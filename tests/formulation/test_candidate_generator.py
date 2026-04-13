@@ -1,7 +1,5 @@
-from pathlib import Path
-import pytest
 from anneal.graph.base import Node, Edge, GraphSource
-from anneal.formulation.candidate_generator import Candidate, CandidateGenerator
+from anneal.formulation.candidate_generator import CandidateGenerator
 
 
 class FakeGraphSource(GraphSource):
