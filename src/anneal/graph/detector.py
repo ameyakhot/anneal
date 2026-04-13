@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+from anneal.graph.anneal_source import AnnealGraphSource
 from anneal.graph.base import Edge, GraphSource, Node
 from anneal.graph.code_review_graph import CodeReviewGraphSource
 from anneal.graph.graphify import GraphifySource
@@ -15,6 +16,7 @@ logger = logging.getLogger("anneal.graph.detector")
 def detect_sources(project_root: Path) -> list[GraphSource]:
     """Return all available graph sources for the given project root."""
     candidates = [
+        AnnealGraphSource(project_root),
         CodeReviewGraphSource(project_root),
         GraphifySource(project_root),
     ]
