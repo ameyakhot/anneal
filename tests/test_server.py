@@ -14,13 +14,28 @@ def _make_crg_db(tmp_path: Path) -> None:
     db_dir.mkdir()
     conn = sqlite3.connect(db_dir / "graph.db")
     conn.executescript("""
-        CREATE TABLE nodes (id TEXT, path TEXT, name TEXT, type TEXT,
-                            start_line INTEGER, end_line INTEGER);
-        CREATE TABLE edges (source_id TEXT, target_id TEXT, type TEXT, weight REAL);
-        INSERT INTO nodes VALUES ('n1', 'src/auth.py', 'authenticate', 'function', 1, 30);
-        INSERT INTO nodes VALUES ('n2', 'src/auth.py', 'hash_password', 'function', 32, 60);
-        INSERT INTO nodes VALUES ('n3', 'src/user.py', 'UserModel', 'class', 1, 80);
-        INSERT INTO edges VALUES ('n1', 'n2', 'calls', 1.0);
+        CREATE TABLE nodes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            kind TEXT NOT NULL, name TEXT NOT NULL,
+            qualified_name TEXT NOT NULL UNIQUE,
+            file_path TEXT NOT NULL,
+            line_start INTEGER, line_end INTEGER,
+            community_id INTEGER
+        );
+        CREATE TABLE edges (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            kind TEXT NOT NULL,
+            source_qualified TEXT NOT NULL, target_qualified TEXT NOT NULL,
+            file_path TEXT NOT NULL
+        );
+        INSERT INTO nodes (kind, name, qualified_name, file_path, line_start, line_end)
+            VALUES ('function', 'authenticate', 'src/auth.py::authenticate', 'src/auth.py', 1, 30);
+        INSERT INTO nodes (kind, name, qualified_name, file_path, line_start, line_end)
+            VALUES ('function', 'hash_password', 'src/auth.py::hash_password', 'src/auth.py', 32, 60);
+        INSERT INTO nodes (kind, name, qualified_name, file_path, line_start, line_end)
+            VALUES ('class', 'UserModel', 'src/user.py::UserModel', 'src/user.py', 1, 80);
+        INSERT INTO edges (kind, source_qualified, target_qualified, file_path)
+            VALUES ('calls', 'src/auth.py::authenticate', 'src/auth.py::hash_password', 'src/auth.py');
     """)
     conn.commit()
     conn.close()

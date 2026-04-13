@@ -1,4 +1,12 @@
-"""Reads codebase graph from code-review-graph's SQLite database."""
+"""Reads codebase graph from code-review-graph's SQLite database.
+
+Schema reference: https://github.com/tirth8205/code-review-graph
+    nodes(id INTEGER, kind TEXT, name TEXT, qualified_name TEXT UNIQUE,
+          file_path TEXT, line_start INTEGER, line_end INTEGER,
+          language TEXT, community_id INTEGER, ...)
+    edges(id INTEGER, kind TEXT, source_qualified TEXT, target_qualified TEXT,
+          file_path TEXT, line INTEGER, ...)
+"""
 
 from __future__ import annotations
 
@@ -14,12 +22,7 @@ _DB_PATH = ".code-review-graph/graph.db"
 
 
 class CodeReviewGraphSource(GraphSource):
-    """Reads dependency graph from .code-review-graph/graph.db (SQLite).
-
-    Expected schema:
-        nodes(id, path, name, type, start_line, end_line)
-        edges(source_id, target_id, type, weight)
-    """
+    """Reads dependency graph from .code-review-graph/graph.db (SQLite)."""
 
     def __init__(self, project_root: Path):
         self._db_path = project_root / _DB_PATH
@@ -46,19 +49,21 @@ class CodeReviewGraphSource(GraphSource):
         try:
             with self._connect() as conn:
                 rows = conn.execute(
-                    "SELECT id, path, name, type, "
-                    "COALESCE(start_line, 0) AS start_line, "
-                    "COALESCE(end_line, 0) AS end_line "
+                    "SELECT qualified_name, file_path, name, kind, "
+                    "COALESCE(line_start, 0) AS line_start, "
+                    "COALESCE(line_end, 0) AS line_end, "
+                    "community_id "
                     "FROM nodes"
                 ).fetchall()
             self._nodes = [
                 Node(
-                    id=r["id"],
-                    path=r["path"],
+                    id=r["qualified_name"],
+                    path=r["file_path"],
                     name=r["name"],
-                    node_type=r["type"],
-                    start_line=r["start_line"],
-                    end_line=r["end_line"],
+                    node_type=r["kind"],
+                    start_line=r["line_start"],
+                    end_line=r["line_end"],
+                    cluster_id=str(r["community_id"]) if r["community_id"] is not None else None,
                 )
                 for r in rows
             ]
@@ -76,15 +81,15 @@ class CodeReviewGraphSource(GraphSource):
         try:
             with self._connect() as conn:
                 rows = conn.execute(
-                    "SELECT source_id, target_id, type, COALESCE(weight, 1.0) AS weight "
+                    "SELECT source_qualified, target_qualified, kind "
                     "FROM edges"
                 ).fetchall()
             self._edges = [
                 Edge(
-                    source_id=r["source_id"],
-                    target_id=r["target_id"],
-                    edge_type=r["type"],
-                    weight=r["weight"],
+                    source_id=r["source_qualified"],
+                    target_id=r["target_qualified"],
+                    edge_type=r["kind"],
+                    weight=1.0,
                 )
                 for r in rows
             ]

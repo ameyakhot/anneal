@@ -9,10 +9,22 @@ def _add_crg(tmp_path: Path) -> None:
     db_dir.mkdir(exist_ok=True)
     conn = sqlite3.connect(db_dir / "graph.db")
     conn.executescript("""
-        CREATE TABLE nodes (id TEXT, path TEXT, name TEXT, type TEXT,
-                            start_line INTEGER, end_line INTEGER);
-        CREATE TABLE edges (source_id TEXT, target_id TEXT, type TEXT, weight REAL);
-        INSERT INTO nodes VALUES ('n1', 'src/a.py', 'func_a', 'function', 1, 10);
+        CREATE TABLE nodes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            kind TEXT NOT NULL, name TEXT NOT NULL,
+            qualified_name TEXT NOT NULL UNIQUE,
+            file_path TEXT NOT NULL,
+            line_start INTEGER, line_end INTEGER,
+            community_id INTEGER
+        );
+        CREATE TABLE edges (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            kind TEXT NOT NULL,
+            source_qualified TEXT NOT NULL, target_qualified TEXT NOT NULL,
+            file_path TEXT NOT NULL
+        );
+        INSERT INTO nodes (kind, name, qualified_name, file_path, line_start, line_end)
+            VALUES ('function', 'func_a', 'src/a.py::func_a', 'src/a.py', 1, 10);
     """)
     conn.commit()
     conn.close()
@@ -53,14 +65,15 @@ def test_composite_merges_nodes(tmp_path):
     composite = CompositeGraphSource(sources)
     nodes = composite.get_nodes()
     ids = {n.id for n in nodes}
-    assert "n1" in ids
-    assert "n2" in ids
+    assert "src/a.py::func_a" in ids  # from crg
+    assert "n2" in ids                 # from graphify
 
 
 def test_composite_deduplicates_nodes(tmp_path):
     _add_crg(tmp_path)
+    # graphify reports same id as crg's qualified_name
     data = {
-        "nodes": [{"id": "n1", "path": "src/a.py", "name": "func_a", "type": "function"}],
+        "nodes": [{"id": "src/a.py::func_a", "path": "src/a.py", "name": "func_a", "type": "function"}],
         "edges": [],
     }
     (tmp_path / "graph.json").write_text(json.dumps(data))
@@ -68,4 +81,4 @@ def test_composite_deduplicates_nodes(tmp_path):
     composite = CompositeGraphSource(sources)
     nodes = composite.get_nodes()
     ids = [n.id for n in nodes]
-    assert ids.count("n1") == 1
+    assert ids.count("src/a.py::func_a") == 1
