@@ -20,14 +20,14 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
 
-      - name: Install SpinChain
-        run: uv pip install --system spinchain
-
-      - name: Install Anneal
-        run: uv pip install --system -e ".[dev]"
+      - name: Create venv and install
+        run: |
+          uv venv
+          uv pip install spinchain
+          uv pip install -e ".[dev]"
 
       - name: Run tests before publish
-        run: python -m pytest tests/ -v --tb=short
+        run: uv run python -m pytest tests/ -v --tb=short
 
       - name: Build package
         run: uv build
