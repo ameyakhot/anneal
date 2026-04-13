@@ -2,22 +2,29 @@
 
 Optimal context selection for AI coding assistants. Cooling random context down to exactly what your AI needs.
 
-Anneal reads your codebase's structural graph (from Graphify or code-review-graph),
-formulates "which chunks are optimal?" as a QUBO problem, solves with simulated
-annealing, and returns the minimum context set for your task.
+Anneal reads your codebase's structural graph, formulates "which chunks are optimal?" as a QUBO problem, solves with simulated annealing, and returns the minimum context set for your task.
+
+## Quick Start
+
+```bash
+pip install anneal-context
+cd your-project
+anneal init          # builds graph from source, writes config
+```
+
+That's it. `anneal init` parses your codebase using tree-sitter, extracts functions, classes, and import relationships, and writes the graph to `.anneal/graph.db`. Then point your MCP client at `anneal-server` and you're ready to go.
 
 ## How It Works
 
-1. Reads codebase graph (Graphify `graph.json` or code-review-graph SQLite)
-2. Generates candidate chunks (keyword matching + graph topology)
-3. Formulates QUBO: minimize token cost, maximize relevance, reward dependency coverage
-4. Solves via simulated annealing (SpinChain engine)
-5. Returns stability-ranked, dependency-ordered chunks within your token budget
+1. **Build graph** — `anneal init` walks your source tree and extracts structural relationships via tree-sitter, supporting 20+ languages (Python, JavaScript, TypeScript, Go, Rust, Java, Ruby, C/C++, and more)
+2. **Generate candidates** — keyword matching + graph topology identify relevant chunks
+3. **Formulate QUBO** — minimize token cost, maximize relevance, reward dependency coverage
+4. **Solve via simulated annealing** — SpinChain engine finds optimal selection
+5. **Return results** — stability-ranked, dependency-ordered chunks within your token budget
 
 ## Requirements
 
 - Python 3.11+
-- At least one graph tool: [Graphify](https://github.com/safishamsi/graphify) or [code-review-graph](https://github.com/nicholasgasior/code-review-graph)
 
 ## Installation
 
@@ -32,7 +39,26 @@ uv tool install anneal-context
 
 ## Setup
 
-**1. Install a graph tool** (required):
+### Primary: `anneal init`
+
+```bash
+cd your-project
+anneal init          # builds graph from source, writes config
+```
+
+`anneal init` uses tree-sitter to parse your codebase directly — no external tools required. It supports 20+ languages including Python, JavaScript, TypeScript, Go, Rust, Java, Ruby, C/C++, C#, Kotlin, Swift, Scala, PHP, and more.
+
+The command:
+- Walks your source files
+- Extracts functions, classes, and import relationships
+- Builds `.anneal/graph.db`
+- Writes a default `.anneal/config.toml`
+
+Add `.anneal/` to your `.gitignore`.
+
+### Optional: Advanced Graph Sources
+
+If you have [code-review-graph](https://github.com/nicholasgasior/code-review-graph) or [Graphify](https://github.com/safishamsi/graphify) installed, Anneal merges their graph data alongside the built-in tree-sitter graph. This can provide additional structural signals (e.g., review history from code-review-graph, or Claude-generated summaries from Graphify).
 
 ```bash
 # code-review-graph
@@ -42,7 +68,9 @@ npx code-review-graph install
 /plugin marketplace add safishamsi/graphify && /graphify
 ```
 
-**2. Create `.anneal/config.toml`** in your project root:
+### Configuration
+
+Default config is written by `anneal init`. You can customize `.anneal/config.toml`:
 
 ```toml
 [budget]
@@ -54,8 +82,6 @@ backend = "simulated-annealing"
 num_reads = 100
 num_sweeps = 1000
 ```
-
-Add `.anneal/` to your `.gitignore`.
 
 ## MCP Server Setup
 
