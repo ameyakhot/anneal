@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install SpinChain from GitHub
+        run: uv pip install --system "spinchain @ git+https://github.com/ameyakhot/spinchain.git"
+
+      - name: Install Anneal
+        run: uv pip install --system -e ".[dev]"
+
+      - name: Lint
+        run: ruff check src/ tests/
+
+      - name: Test
+        run: python -m pytest tests/ -v --tb=short
+
+  test-spinchain-main:
+    name: Test against SpinChain main
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install SpinChain from main
+        run: uv pip install --system "spinchain @ git+https://github.com/ameyakhot/spinchain.git@main"
+
+      - name: Install Anneal
+        run: uv pip install --system -e ".[dev]"
+
+      - name: Test
+        run: python -m pytest tests/ -v --tb=short
