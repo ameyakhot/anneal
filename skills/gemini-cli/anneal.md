@@ -3,7 +3,7 @@
 ## Installation
 
 ```bash
-pip install anneal
+pip install anneal-context
 ```
 
 Add to `~/.gemini/settings.json`:

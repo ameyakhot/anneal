@@ -22,12 +22,12 @@ annealing, and returns the minimum context set for your task.
 ## Installation
 
 ```bash
-pip install anneal
+pip install anneal-context
 ```
 
 Or with uv:
 ```bash
-uv tool install anneal
+uv tool install anneal-context
 ```
 
 ## Setup

@@ -74,7 +74,7 @@ Or with uvx (no install):
   "mcpServers": {
     "anneal": {
       "command": "uvx",
-      "args": ["anneal"]
+      "args": ["anneal-context"]
     }
   }
 }
