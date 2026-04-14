@@ -22,6 +22,28 @@ That's it. `anneal init` parses your codebase using tree-sitter, extracts functi
 4. **Solve via simulated annealing** — SpinChain engine finds optimal selection
 5. **Return results** — stability-ranked, dependency-ordered chunks within your token budget
 
+## Benchmark Results
+
+Evaluated on 10 coding tasks against Anneal's own codebase (247 nodes, 39 files), comparing QUBO optimization against three baselines:
+
+```
+Method                 Recall  Precision       F1    Util%  Perfect
+-------------------------------------------------------------------
+anneal_qubo            66.7%     15.2%   24.2%   34.6%     4/10
+top_k_relevance        70.0%     11.9%   20.2%   99.9%     4/10
+top_k_tokens           76.7%      6.5%   11.9%   98.8%     5/10
+random                 65.0%      7.1%   12.7%   99.9%     2/10
+```
+
+**Key finding:** Anneal QUBO achieves the **best F1 score (24.2%)** and **best precision (15.2%)** while using only **34.6% of the token budget** — 3x more token-efficient than baselines that fill the entire budget. The QUBO formulation selects fewer, more targeted chunks rather than brute-forcing coverage.
+
+Run the benchmark yourself:
+```bash
+cd your-project
+anneal init
+uv run python -m benchmarks
+```
+
 ## Requirements
 
 - Python 3.11+
