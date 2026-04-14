@@ -36,10 +36,11 @@ def _parse_keywords(task_description: str) -> list[str]:
     return [w for w in words if w not in _STOP_WORDS and len(w) > 2]
 
 
-def _keyword_score(node: Node, keywords: list[str]) -> float:
+def _keyword_score(node: Node, keywords: list[str], content: str = "") -> float:
     if not keywords:
         return 0.0
-    text = f"{node.path} {node.name}".lower()
+    # Search path, name, and content for keyword matches
+    text = f"{node.path} {node.name} {content}".lower()
     hits = sum(1 for kw in keywords if kw in text)
     if hits == 0:
         return 0.0
@@ -89,7 +90,8 @@ class CandidateGenerator:
         for node in all_nodes:
             if node.path in exclude_set:
                 continue
-            kw = _keyword_score(node, keywords)
+            content = _read_content(node, self._project_root)
+            kw = _keyword_score(node, keywords, content)
             cent = degree.get(node.id, 0) / max_degree
             rel = self._kw_w * kw + self._cent_w * cent
             if any(node.path == p or node.path.startswith(p) for p in include_set):
@@ -113,7 +115,8 @@ class CandidateGenerator:
             node = node_map.get(nid)
             if node is None or node.path in exclude_set:
                 continue
-            kw = _keyword_score(node, keywords)
+            content = _read_content(node, self._project_root)
+            kw = _keyword_score(node, keywords, content)
             cent = degree.get(nid, 0) / max_degree
             rel = min(1.0, self._kw_w * kw + self._cent_w * cent + 0.05)
             scored.append((rel, node))
